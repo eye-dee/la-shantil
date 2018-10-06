@@ -1,10 +1,12 @@
+package shantil;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -16,14 +18,20 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import shantil.Main.LagrangePart;
 
-public class LineChartEx extends JFrame {
+public class LineChartParts extends JFrame {
 
-  private final PolynomialSplineFunction function;
+  private final List<LagrangePart> parts;
+  private final double min;
+  private final double max;
 
-  public LineChartEx(PolynomialSplineFunction polygon) {
-    this.function = polygon;
+  public LineChartParts(List<LagrangePart> parts, double min, double max) {
+    this.parts = parts;
+    this.min = min;
+    this.max = max;
     initUI();
+
   }
 
   private void initUI() {
@@ -44,8 +52,20 @@ public class LineChartEx extends JFrame {
   private XYDataset createDataset() {
 
     XYSeries series = new XYSeries("2016");
-    for (var x = 0.0; x < 100.0; x += 0.1) {
-      series.add(x, function.value(x));
+    for (var x = min; x < max; x += 0.1 - 0.05) {
+
+      LagrangePart current = null;
+
+      for (var part : parts) {
+        if (x < part.right) {
+          current = part;
+          break;
+        }
+      }
+
+      if (current != null) {
+        series.add(x, current.form.value(x));
+      }
     }
 
     XYSeriesCollection dataset = new XYSeriesCollection();
@@ -57,9 +77,9 @@ public class LineChartEx extends JFrame {
   private JFreeChart createChart(XYDataset dataset) {
 
     JFreeChart chart = ChartFactory.createXYLineChart(
-        "Average salary per age",
-        "Age",
-        "Salary (€)",
+        "Lagrange",
+        "Lagrange X",
+        "Lagrange Y",
         dataset,
         PlotOrientation.VERTICAL,
         true,
@@ -84,8 +104,8 @@ public class LineChartEx extends JFrame {
 
     chart.getLegend().setFrame(BlockBorder.NONE);
 
-    chart.setTitle(new TextTitle("Average Salary per Age",
-            new Font("Serif", java.awt.Font.BOLD, 18)
+    chart.setTitle(new TextTitle("Lagrange",
+            new Font("Lagrange", Font.BOLD, 18)
         )
     );
 
@@ -93,12 +113,12 @@ public class LineChartEx extends JFrame {
 
   }
 
-  public static void draw(
-      PolynomialSplineFunction polygon) {
+  public static void draw(List<LagrangePart> parts, double min, double max) {
 
     SwingUtilities.invokeLater(() -> {
-      LineChartEx ex = new LineChartEx(polygon);
+      LineChartParts ex = new LineChartParts(parts, min, max);
       ex.setVisible(true);
     });
   }
+
 }
